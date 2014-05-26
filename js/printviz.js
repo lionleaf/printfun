@@ -13,22 +13,65 @@ var ground = false;
 function fillScene() {
     scene = new THREE.Scene();
 
-    var material = new THREE.LineBasicMaterial({
-        color: 0x0000ff
-    });
+    
 
     $.getJSON("cointop.json", function(json) {
         var geometry = new THREE.Geometry();
+        var commands = {};
+        var last_a = 0;
+        var lx = ly = lz = 0;
+
         for(var i = 0; i < json.length; i++){
             var obj = json[i];
+            commands[obj.command.function] = 1;
             if(obj.command.function == "move"){
                 var params = obj.command.parameters;
+                var a = params.a;
+                var thickness = a - last_a;
+
+                var x = params.x;
+                var y = params.y;
+                var z = params.z;
+
+                var dx = x - lx;
+                var dy = y - ly;
+                var dz = z - lz;
+
+                var len = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
+
+                thickness /= len;
+                thickness *= 10;
+
                 geometry.vertices.push(new THREE.Vector3(params.x, params.z, params.y));
+
+                var material = new THREE.LineBasicMaterial({
+                    color: 0x0000ff,
+                    linewidth: thickness
+                });
+                var line = new THREE.Line(geometry, material);
+                
+
+                if(thickness > 0){
+                    scene.add(line);
+                }
+
+                //Add this point as the startingpoint of the next line!
+                geometry = new THREE.Geometry();
+                geometry.vertices.push(new THREE.Vector3(params.x, params.z, params.y));
+                
+                
+                //Update "last" values
+                
+                last_a = a;
+                lx = x;
+                ly = y;
+                lz = z;
+
             }
         }
+        console.log(commands);
         jsn = json;
-        var line = new THREE.Line(geometry, material);
-        scene.add(line);
+        
         renderer.render(scene, camera);
     });
 }
