@@ -22,6 +22,10 @@ function fillScene() {
     geometry.vertices.push(new THREE.Vector3(10, 0, 0));
 
 
+    $.getJSON("cointop.json", function(json) {
+            console.log("wooho");
+            jsn = json;
+    });
     var line = new THREE.Line(geometry, material);
     scene.add(line);
     renderer.render(scene, camera);
